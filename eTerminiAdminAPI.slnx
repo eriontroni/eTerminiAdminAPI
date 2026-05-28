@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="eTerminiAdminAPI.API/eTerminiAdminAPI.API.csproj" />
+  <Project Path="eTerminiAdminAPI.Application/eTerminiAdminAPI.Application.csproj" />
+  <Project Path="eTerminiAdminAPI.Infrastructure/eTerminiAdminAPI.Infrastructure.csproj" />
+</Solution>
