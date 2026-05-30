@@ -13,7 +13,7 @@ public class AdminInstitutionService : IAdminInstitutionService
 
     public async Task<IEnumerable<InstitutionAdminDto>> GetAllAsync()
     {
-        var institutions = (await _uow.Institutions.GetAllAsync()).ToList();
+        var institutions = (await _uow.Institutions.GetAllAsync()).ToList().Where(i => !i.IsDeleted);
         var branches     = (await _uow.InstitutionBranches.GetAllAsync()).ToList();
         var departments  = (await _uow.Departments.GetAllAsync()).ToList();
         var staff        = (await _uow.StaffMembers.GetAllAsync()).ToList();
@@ -22,20 +22,21 @@ public class AdminInstitutionService : IAdminInstitutionService
 
         return institutions.Select(i => new InstitutionAdminDto
         {
-            Id          = i.Id,
-            TenantId    = i.TenantId,
-            Name        = i.Name,
+            Id = i.Id,
+            TenantId = i.TenantId,
+            Name = i.Name,
             Description = i.Description,
-            City        = i.City,
-            Address     = i.Address,
+            City = i.City,
+            Address = i.Address,
             PhoneNumber = i.PhoneNumber,
-            Email       = i.Email,
-            LogoUrl     = i.LogoUrl,
-            IsActive    = i.IsActive,
-            CreatedAt   = i.CreatedAt,
+            Email = i.Email,
+            LogoUrl = i.LogoUrl,
+            IsActive = i.IsActive,
+            CreatedAt = i.CreatedAt,
             BranchCount = branches.Count(b => b.InstitutionId == i.Id),
             WorkerCount = staff.Count(s => deptToInst.TryGetValue(s.DepartmentId, out var iid) && iid == i.Id)
-        }).OrderBy(i => i.Name);
+        })
+            .OrderBy(i => i.Name);
     }
 
     public async Task<InstitutionAdminDto> GetByIdAsync(Guid id)
@@ -113,7 +114,7 @@ public class AdminInstitutionService : IAdminInstitutionService
         var institution = await _uow.Institutions.GetByIdAsync(id)
             ?? throw new KeyNotFoundException($"Institucioni me ID {id} nuk u gjet.");
 
-        institution.IsActive  = !institution.IsActive;
+        institution.IsDeleted  = true;
         institution.UpdatedAt = DateTime.UtcNow;
 
         _uow.Institutions.Update(institution);
