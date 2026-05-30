@@ -1,8 +1,10 @@
 using System.Text;
+using eTerminiAdminAPI.API.Authorization;
 using eTerminiAdminAPI.API.Middleware;
 using eTerminiAdminAPI.Infrastructure;
 using eTerminiAPI.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -45,6 +47,10 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("SuperAdminOnly", p => p.RequireRole("SuperAdmin"));
 });
+
+// RBAC: politika dinamike për leje (perm:*) + handler.
+builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -97,6 +103,7 @@ app.UseCors("AllowAdminUI");
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers().RequireAuthorization("SuperAdminOnly");
+// Çdo endpoint kërkon të paktën autentikim; lejet specifike vendosen me [HasPermission].
+app.MapControllers().RequireAuthorization();
 
 app.Run();

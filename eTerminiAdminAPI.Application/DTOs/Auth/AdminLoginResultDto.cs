@@ -10,4 +10,7 @@ public class AdminLoginResultDto
     public string?   Email        { get; set; }
     public string?   FullName     { get; set; }
     public string?   Role         { get; set; }
+    public string?   RoleName     { get; set; }
+    public List<string> Permissions { get; set; } = new();
+    public Guid?        AdminRoleId { get; set; }
 }

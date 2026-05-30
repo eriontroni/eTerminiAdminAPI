@@ -1,5 +1,7 @@
+using eTerminiAdminAPI.API.Authorization;
 using eTerminiAdminAPI.Application.DTOs.Workers;
 using eTerminiAdminAPI.Application.Interfaces.Services;
+using eTerminiAPI.Domain.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace eTerminiAdminAPI.API.Controllers;
@@ -13,12 +15,15 @@ public class WorkersAdminController : ControllerBase
     public WorkersAdminController(IAdminWorkerService service) => _service = service;
 
     [HttpGet]
+    [HasPermission(Permissions.Workers.View)]
     public async Task<IActionResult> GetAll() => Ok(await _service.GetAllAsync());
 
     [HttpGet("{id:guid}")]
+    [HasPermission(Permissions.Workers.View)]
     public async Task<IActionResult> GetById(Guid id) => Ok(await _service.GetByIdAsync(id));
 
     [HttpPost]
+    [HasPermission(Permissions.Workers.CreateUpdate)]
     public async Task<IActionResult> Create([FromBody] CreateWorkerDto dto)
     {
         var result = await _service.CreateAsync(dto);
@@ -26,14 +31,17 @@ public class WorkersAdminController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [HasPermission(Permissions.Workers.CreateUpdate)]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateWorkerDto dto)
         => Ok(await _service.UpdateAsync(id, dto));
 
     [HttpPatch("{id:guid}/toggle-active")]
+    [HasPermission(Permissions.Workers.CreateUpdate)]
     public async Task<IActionResult> ToggleActive(Guid id)
         => Ok(await _service.ToggleActiveAsync(id));
 
     [HttpPatch("{id:guid}/assign-institution")]
+    [HasPermission(Permissions.Workers.CreateUpdate)]
     public async Task<IActionResult> AssignInstitution(Guid id, [FromBody] AssignInstitutionDto dto)
         => Ok(await _service.AssignInstitutionAsync(id, dto));
 }

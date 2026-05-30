@@ -1,10 +1,13 @@
+using eTerminiAdminAPI.API.Authorization;
 using eTerminiAdminAPI.Application.Interfaces.Services;
+using eTerminiAPI.Domain.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace eTerminiAdminAPI.API.Controllers;
 
 [ApiController]
 [Route("api/admin/dashboard")]
+[HasPermission(Permissions.Dashboard.View)]
 public class DashboardAdminController : ControllerBase
 {
     private readonly IAdminDashboardService _service;
