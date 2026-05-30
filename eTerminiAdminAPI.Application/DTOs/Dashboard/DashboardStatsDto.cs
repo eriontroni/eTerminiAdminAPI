@@ -1,5 +1,15 @@
 namespace eTerminiAdminAPI.Application.DTOs.Dashboard;
 
+public class ActiveAppointmentDto
+{
+    public Guid      Id              { get; set; }
+    public string    PatientName     { get; set; } = string.Empty;
+    public string?   DoctorName      { get; set; }
+    public DateTime? AppointmentDate { get; set; }
+    public string    Status          { get; set; } = string.Empty;
+    public string?   Notes           { get; set; }
+}
+
 public class DashboardStatsDto
 {
     public int InstitutionCount  { get; set; }

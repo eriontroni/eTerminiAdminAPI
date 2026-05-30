@@ -17,6 +17,7 @@ public class AdminInstitutionService : IAdminInstitutionService
         var branches     = (await _uow.InstitutionBranches.GetAllAsync()).ToList();
         var departments  = (await _uow.Departments.GetAllAsync()).ToList();
         var staff        = (await _uow.StaffMembers.GetAllAsync()).ToList();
+        var categories   = (await _uow.ServiceCategories.GetAllAsync()).ToDictionary(c => c.Id, c => c.Name);
 
         var deptToInst = departments.ToDictionary(d => d.Id, d => d.InstitutionId);
 
@@ -31,6 +32,8 @@ public class AdminInstitutionService : IAdminInstitutionService
             PhoneNumber = i.PhoneNumber,
             Email = i.Email,
             LogoUrl = i.LogoUrl,
+            CategoryId = i.CategoryId,
+            CategoryName = i.CategoryId.HasValue && categories.TryGetValue(i.CategoryId.Value, out var cn) ? cn : null,
             IsActive = i.IsActive,
             CreatedAt = i.CreatedAt,
             BranchCount = branches.Count(b => b.InstitutionId == i.Id),
@@ -49,21 +52,30 @@ public class AdminInstitutionService : IAdminInstitutionService
         var deptIds  = depts.Select(d => d.Id).ToHashSet();
         var staff    = await _uow.StaffMembers.FindAsync(s => deptIds.Contains(s.DepartmentId));
 
+        string? categoryName = null;
+        if (institution.CategoryId.HasValue)
+        {
+            var cat = await _uow.ServiceCategories.GetByIdAsync(institution.CategoryId.Value);
+            categoryName = cat?.Name;
+        }
+
         return new InstitutionAdminDto
         {
-            Id          = institution.Id,
-            TenantId    = institution.TenantId,
-            Name        = institution.Name,
-            Description = institution.Description,
-            City        = institution.City,
-            Address     = institution.Address,
-            PhoneNumber = institution.PhoneNumber,
-            Email       = institution.Email,
-            LogoUrl     = institution.LogoUrl,
-            IsActive    = institution.IsActive,
-            CreatedAt   = institution.CreatedAt,
-            BranchCount = branches.Count(),
-            WorkerCount = staff.Count()
+            Id           = institution.Id,
+            TenantId     = institution.TenantId,
+            Name         = institution.Name,
+            Description  = institution.Description,
+            City         = institution.City,
+            Address      = institution.Address,
+            PhoneNumber  = institution.PhoneNumber,
+            Email        = institution.Email,
+            LogoUrl      = institution.LogoUrl,
+            CategoryId   = institution.CategoryId,
+            CategoryName = categoryName,
+            IsActive     = institution.IsActive,
+            CreatedAt    = institution.CreatedAt,
+            BranchCount  = branches.Count(),
+            WorkerCount  = staff.Count()
         };
     }
 
@@ -73,6 +85,7 @@ public class AdminInstitutionService : IAdminInstitutionService
         {
             Id          = Guid.NewGuid(),
             TenantId    = dto.TenantId,
+            CategoryId  = dto.CategoryId,
             Name        = dto.Name,
             Description = dto.Description,
             City        = dto.City,
@@ -95,6 +108,7 @@ public class AdminInstitutionService : IAdminInstitutionService
         var institution = await _uow.Institutions.GetByIdAsync(id)
             ?? throw new KeyNotFoundException($"Institucioni me ID {id} nuk u gjet.");
 
+        institution.CategoryId  = dto.CategoryId;
         institution.Name        = dto.Name;
         institution.Description = dto.Description;
         institution.City        = dto.City;
@@ -114,12 +128,26 @@ public class AdminInstitutionService : IAdminInstitutionService
         var institution = await _uow.Institutions.GetByIdAsync(id)
             ?? throw new KeyNotFoundException($"Institucioni me ID {id} nuk u gjet.");
 
-        institution.IsDeleted  = true;
+        institution.IsActive  = !institution.IsActive;
         institution.UpdatedAt = DateTime.UtcNow;
 
         _uow.Institutions.Update(institution);
         await _uow.SaveChangesAsync();
 
         return await GetByIdAsync(id);
+    }
+
+    public async Task DeleteAsync(Guid id)
+    {
+        var institution = await _uow.Institutions.GetByIdAsync(id)
+            ?? throw new KeyNotFoundException($"Institucioni me ID {id} nuk u gjet.");
+
+        // Soft delete: shëno si i fshirë (përjashtohet nga listat).
+        institution.IsDeleted = true;
+        institution.IsActive  = false;
+        institution.UpdatedAt = DateTime.UtcNow;
+
+        _uow.Institutions.Update(institution);
+        await _uow.SaveChangesAsync();
     }
 }

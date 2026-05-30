@@ -11,6 +11,8 @@ public class InstitutionAdminDto
     public string?  PhoneNumber { get; set; }
     public string?  Email       { get; set; }
     public string?  LogoUrl     { get; set; }
+    public Guid?    CategoryId  { get; set; }
+    public string?  CategoryName { get; set; }
     public bool     IsActive    { get; set; }
     public DateTime CreatedAt   { get; set; }
     public int      BranchCount { get; set; }

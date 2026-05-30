@@ -44,4 +44,12 @@ public class WorkersAdminController : ControllerBase
     [HasPermission(Permissions.Workers.CreateUpdate)]
     public async Task<IActionResult> AssignInstitution(Guid id, [FromBody] AssignInstitutionDto dto)
         => Ok(await _service.AssignInstitutionAsync(id, dto));
+
+    [HttpDelete("{id:guid}")]
+    [HasPermission(Permissions.Workers.Delete)]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        await _service.DeleteAsync(id);
+        return Ok(new { message = "Punëtori u fshi me sukses." });
+    }
 }

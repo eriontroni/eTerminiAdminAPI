@@ -10,4 +10,5 @@ public interface IAdminWorkerService
     Task<WorkerAdminDto>              UpdateAsync(Guid id, UpdateWorkerDto dto);
     Task<WorkerAdminDto>              ToggleActiveAsync(Guid id);
     Task<WorkerAdminDto>              AssignInstitutionAsync(Guid id, AssignInstitutionDto dto);
+    Task                             DeleteAsync(Guid id);
 }

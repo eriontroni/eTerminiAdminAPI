@@ -168,6 +168,31 @@ public class AdminWorkerService : IAdminWorkerService
         return await GetByIdAsync(id);
     }
 
+    public async Task DeleteAsync(Guid id)
+    {
+        var s = await _uow.StaffMembers.GetByIdAsync(id)
+            ?? throw new KeyNotFoundException($"Punëtori me ID {id} nuk u gjet.");
+
+        // Soft delete: shëno si i fshirë (global query filter e përjashton nga listat).
+        s.IsDeleted = true;
+        s.IsActive  = false;
+        s.UpdatedAt = DateTime.UtcNow;
+        _uow.StaffMembers.Update(s);
+
+        // Fshi edhe llogarinë e përdoruesit të lidhur.
+        var users = await _uow.Users.FindAsync(u => u.Id == s.UserId);
+        var user  = users.FirstOrDefault();
+        if (user != null)
+        {
+            user.IsDeleted = true;
+            user.IsActive  = false;
+            user.UpdatedAt = DateTime.UtcNow;
+            _uow.Users.Update(user);
+        }
+
+        await _uow.SaveChangesAsync();
+    }
+
     public async Task<WorkerAdminDto> AssignInstitutionAsync(Guid id, AssignInstitutionDto dto)
     {
         var s = await _uow.StaffMembers.GetByIdAsync(id)

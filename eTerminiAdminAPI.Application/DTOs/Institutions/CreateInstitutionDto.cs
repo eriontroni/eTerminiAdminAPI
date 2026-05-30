@@ -3,6 +3,7 @@ namespace eTerminiAdminAPI.Application.DTOs.Institutions;
 public class CreateInstitutionDto
 {
     public Guid    TenantId    { get; set; }
+    public Guid?   CategoryId  { get; set; }
     public string  Name        { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string  City        { get; set; } = string.Empty;

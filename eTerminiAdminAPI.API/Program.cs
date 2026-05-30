@@ -20,7 +20,9 @@ builder.Host.UseSerilog();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAdminUI", policy =>
-        policy.WithOrigins("http://localhost:5175", "http://localhost:5176")
+        policy.WithOrigins(
+                  "http://localhost:5175",  "https://localhost:5175",
+                  "http://localhost:5176",  "https://localhost:5176")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials());
