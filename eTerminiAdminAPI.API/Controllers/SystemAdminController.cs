@@ -1,10 +1,13 @@
+using eTerminiAdminAPI.API.Authorization;
 using eTerminiAdminAPI.Application.Interfaces.Services;
+using eTerminiAPI.Domain.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace eTerminiAdminAPI.API.Controllers;
 
 [ApiController]
 [Route("api/admin/system")]
+[HasPermission(Permissions.System.View)]
 public class SystemAdminController : ControllerBase
 {
     private readonly IAdminSystemService _service;
