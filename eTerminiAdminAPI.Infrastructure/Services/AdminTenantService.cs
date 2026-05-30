@@ -10,7 +10,7 @@ public class AdminTenantService : IAdminTenantService
 {
     private readonly IUnitOfWork _uow;
 
-    public AdminTenantService(IUnitOfWork uow) => _uow = uow;
+    public AdminTenantService(IUnitOfWork uow) => _uow = uow;   
 
     public async Task<IEnumerable<TenantDto>> GetAllAsync()
     {

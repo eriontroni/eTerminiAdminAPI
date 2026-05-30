@@ -18,6 +18,10 @@ public class AdminAuthController : ControllerBase
     public async Task<IActionResult> Login([FromBody] AdminLoginDto dto)
     {
         var result = await _authService.LoginAsync(dto);
+
+        if (!result.IsSuccess)
+            return Unauthorized(new { message = result.Message });
+
         return Ok(result);
     }
 }

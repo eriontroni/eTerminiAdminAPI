@@ -4,7 +4,6 @@ using System.Security.Cryptography;
 using System.Text;
 using eTerminiAdminAPI.Application.DTOs.Auth;
 using eTerminiAdminAPI.Application.Interfaces.Services;
-using eTerminiAPI.Application.DTOs.Auth;
 using eTerminiAPI.Application.Interfaces.Repositories;
 using eTerminiAPI.Domain.Entities;
 using eTerminiAPI.Domain.Enums;
@@ -24,27 +23,27 @@ public class AdminAuthService : IAdminAuthService
         _config = config;
     }
 
-    public async Task<AuthResponseDto> LoginAsync(AdminLoginDto dto)
+    public async Task<AdminLoginResultDto> LoginAsync(AdminLoginDto dto)
     {
         var users = await _uow.Users.FindAsync(u => u.Email == dto.Email.ToLower().Trim());
-        var user  = users.FirstOrDefault()
-            ?? throw new UnauthorizedAccessException("Email ose fjalëkalimi është i gabuar.");
+        var user  = users.FirstOrDefault();
+
+        if (user == null || !VerifyPassword(dto.Password, user.PasswordHash))
+            return Fail("Email ose fjalëkalimi është i gabuar.");
 
         if (user.Role != UserRole.SuperAdmin)
-            throw new UnauthorizedAccessException("Qasja e refuzuar. Vetëm SuperAdmin mund të hyjë.");
+            return Fail("Qasja e refuzuar. Vetëm SuperAdmin mund të hyjë.");
 
         if (!user.IsActive)
-            throw new UnauthorizedAccessException("Llogaria është çaktivizuar.");
-
-        if (!VerifyPassword(dto.Password, user.PasswordHash))
-            throw new UnauthorizedAccessException("Email ose fjalëkalimi është i gabuar.");
+            return Fail("Llogaria është çaktivizuar.");
 
         var accessToken  = GenerateAccessToken(user);
         var refreshToken = await CreateRefreshTokenAsync(user.Id);
         var expiry       = DateTime.UtcNow.AddMinutes(GetConfigInt("Jwt:AccessTokenExpiryMinutes", 60));
 
-        return new AuthResponseDto
+        return new AdminLoginResultDto
         {
+            IsSuccess    = true,
             AccessToken  = accessToken,
             RefreshToken = refreshToken,
             ExpiresAt    = expiry,
@@ -53,6 +52,9 @@ public class AdminAuthService : IAdminAuthService
             Role         = user.Role.ToString()
         };
     }
+
+    private static AdminLoginResultDto Fail(string message) =>
+        new() { IsSuccess = false, Message = message };
 
     private string GenerateAccessToken(User user)
     {
