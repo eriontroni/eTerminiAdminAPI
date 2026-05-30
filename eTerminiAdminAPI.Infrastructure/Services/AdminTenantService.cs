@@ -58,7 +58,12 @@ public class AdminTenantService : IAdminTenantService
         if (linked.Any())
             throw new InvalidOperationException("Ky qytet nuk mund të fshihet sepse ka institucione të lidhura me të.");
 
-        _uow.Tenants.Delete(tenant);
+        // Soft delete: shëno si i fshirë (global query filter e përjashton nga listat).
+        tenant.IsDeleted = true;
+        tenant.IsActive  = false;
+        tenant.UpdatedAt = DateTime.UtcNow;
+
+        _uow.Tenants.Update(tenant);
         await _uow.SaveChangesAsync();
     }
 

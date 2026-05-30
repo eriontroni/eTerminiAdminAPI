@@ -4,5 +4,6 @@ namespace eTerminiAdminAPI.Application.Interfaces.Services;
 
 public interface IAdminDashboardService
 {
-    Task<DashboardStatsDto> GetStatsAsync();
+    Task<DashboardStatsDto>                  GetStatsAsync();
+    Task<IEnumerable<ActiveAppointmentDto>>  GetActiveAppointmentsAsync();
 }

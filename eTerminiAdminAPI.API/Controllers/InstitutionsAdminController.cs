@@ -39,4 +39,12 @@ public class InstitutionsAdminController : ControllerBase
     [HasPermission(Permissions.Institutions.CreateUpdate)]
     public async Task<IActionResult> ToggleActive(Guid id)
         => Ok(await _service.ToggleActiveAsync(id));
+
+    [HttpDelete("{id:guid}")]
+    [HasPermission(Permissions.Institutions.Delete)]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        await _service.DeleteAsync(id);
+        return Ok(new { message = "Institucioni u fshi me sukses." });
+    }
 }

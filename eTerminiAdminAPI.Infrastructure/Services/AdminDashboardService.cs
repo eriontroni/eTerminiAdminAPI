@@ -1,6 +1,7 @@
 using eTerminiAdminAPI.Application.DTOs.Dashboard;
 using eTerminiAdminAPI.Application.Interfaces.Services;
 using eTerminiAPI.Application.Interfaces.Repositories;
+using eTerminiAPI.Domain.Enums;
 
 namespace eTerminiAdminAPI.Infrastructure.Services;
 
@@ -42,5 +43,32 @@ public class AdminDashboardService : IAdminDashboardService
             TodayAppointments = todayAppointments,
             RecentActivity    = recentActivity
         };
+    }
+
+    public async Task<IEnumerable<ActiveAppointmentDto>> GetActiveAppointmentsAsync()
+    {
+        var activeStatuses = new[] { AppointmentStatus.Pending, AppointmentStatus.Confirmed };
+
+        var appointments = (await _uow.Appointments.FindAsync(a => activeStatuses.Contains(a.Status))).ToList();
+        var users        = (await _uow.Users.GetAllAsync()).ToList();
+        var staff        = (await _uow.StaffMembers.GetAllAsync()).ToList();
+
+        // StaffMember → User për emrin e mjekut
+        var userMap     = users.ToDictionary(u => u.Id, u => $"{u.FirstName} {u.LastName}");
+        var doctorNames = staff.ToDictionary(
+            s => s.Id,
+            s => userMap.TryGetValue(s.UserId, out var n) ? n : "—");
+
+        return appointments
+            .OrderBy(a => a.AppointmentDate)
+            .Select(a => new ActiveAppointmentDto
+            {
+                Id              = a.Id,
+                PatientName     = userMap.TryGetValue(a.UserId, out var p) ? p : "—",
+                DoctorName      = a.DoctorId.HasValue && doctorNames.TryGetValue(a.DoctorId.Value, out var d) ? d : null,
+                AppointmentDate = a.AppointmentDate,
+                Status          = a.Status == AppointmentStatus.Confirmed ? "Konfirmuar" : "Në pritje",
+                Notes           = a.Notes
+            });
     }
 }

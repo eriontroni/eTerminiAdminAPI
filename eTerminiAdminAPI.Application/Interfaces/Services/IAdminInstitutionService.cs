@@ -9,4 +9,5 @@ public interface IAdminInstitutionService
     Task<InstitutionAdminDto>              CreateAsync(CreateInstitutionDto dto);
     Task<InstitutionAdminDto>              UpdateAsync(Guid id, UpdateInstitutionDto dto);
     Task<InstitutionAdminDto>              ToggleActiveAsync(Guid id);
+    Task                                   DeleteAsync(Guid id);
 }

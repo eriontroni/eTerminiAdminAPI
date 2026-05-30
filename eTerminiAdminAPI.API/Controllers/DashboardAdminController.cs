@@ -16,4 +16,8 @@ public class DashboardAdminController : ControllerBase
 
     [HttpGet("stats")]
     public async Task<IActionResult> GetStats() => Ok(await _service.GetStatsAsync());
+
+    [HttpGet("active-appointments")]
+    public async Task<IActionResult> GetActiveAppointments()
+        => Ok(await _service.GetActiveAppointmentsAsync());
 }
