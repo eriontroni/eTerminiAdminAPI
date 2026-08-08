@@ -81,10 +81,6 @@ public class AdminCategoryService : IAdminCategoryService
         if (category == null)
             return (false, "Kategoria nuk u gjet.");
 
-        var usedByServices = await _uow.PublicServices.FindAsync(s => s.CategoryId == id);
-        if (usedByServices.Any())
-            return (false, "Kjo kategori nuk mund të fshihet sepse ka shërbime të lidhura me të.");
-
         var usedByInstitutions = await _uow.Institutions.FindAsync(i => i.CategoryId == id);
         if (usedByInstitutions.Any())
             return (false, "Kjo kategori nuk mund të fshihet sepse ka institucione të lidhura me të.");

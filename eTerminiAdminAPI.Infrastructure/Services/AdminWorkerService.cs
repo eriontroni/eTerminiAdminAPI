@@ -87,8 +87,12 @@ public class AdminWorkerService : IAdminWorkerService
 
     public async Task<WorkerAdminDto> CreateAsync(CreateWorkerDto dto)
     {
-        _ = await _uow.Departments.GetByIdAsync(dto.DepartmentId)
-            ?? throw new KeyNotFoundException("Departamenti nuk u gjet.");
+        var institution = await _uow.Institutions.GetByIdAsync(dto.InstitutionId)
+            ?? throw new KeyNotFoundException("Institucioni nuk u gjet.");
+
+        // The worker is tied to the institution; a department is resolved automatically
+        // (first active one, or a default "Përgjithshëm" department created on the fly).
+        var departmentId = await ResolveDepartmentIdAsync(institution.Id, dto.TenantId);
 
         var existing = await _uow.Users.FindAsync(u => u.Email == dto.Email.ToLower().Trim());
         if (existing.Any()) throw new InvalidOperationException("Ky email është tashmë i regjistruar.");
@@ -116,7 +120,7 @@ public class AdminWorkerService : IAdminWorkerService
             Id           = staffMemberId,
             TenantId     = dto.TenantId,
             UserId       = userId,
-            DepartmentId = dto.DepartmentId,
+            DepartmentId = departmentId,
             Title        = dto.Title,
             IsActive     = true,
             CreatedAt    = DateTime.UtcNow,
@@ -128,6 +132,27 @@ public class AdminWorkerService : IAdminWorkerService
         await _uow.SaveChangesAsync();
 
         return await GetByIdAsync(staffMemberId);
+    }
+
+    // Returns a department id for the institution, creating a default one if none exists.
+    private async Task<Guid> ResolveDepartmentIdAsync(Guid institutionId, Guid tenantId)
+    {
+        var departments = await _uow.Departments.FindAsync(d => d.InstitutionId == institutionId && d.IsActive);
+        var existing = departments.FirstOrDefault();
+        if (existing is not null) return existing.Id;
+
+        var department = new Department
+        {
+            Id            = Guid.NewGuid(),
+            TenantId      = tenantId,
+            InstitutionId = institutionId,
+            Name          = "Përgjithshëm",
+            IsActive      = true,
+            CreatedAt     = DateTime.UtcNow,
+            UpdatedAt     = DateTime.UtcNow
+        };
+        await _uow.Departments.AddAsync(department);
+        return department.Id;
     }
 
     public async Task<WorkerAdminDto> UpdateAsync(Guid id, UpdateWorkerDto dto)

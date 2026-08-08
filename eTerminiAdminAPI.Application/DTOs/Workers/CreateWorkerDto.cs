@@ -7,7 +7,7 @@ public class CreateWorkerDto
     public string  Email        { get; set; } = string.Empty;
     public string  Password     { get; set; } = string.Empty;
     public string? PhoneNumber  { get; set; }
-    public string  Title        { get; set; } = string.Empty;
-    public Guid    DepartmentId { get; set; }
-    public Guid    TenantId     { get; set; }
+    public string  Title         { get; set; } = string.Empty;
+    public Guid    InstitutionId { get; set; }
+    public Guid    TenantId      { get; set; }
 }

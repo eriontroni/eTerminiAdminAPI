@@ -23,7 +23,7 @@ public class AdminAdministratorService : IAdminAdministratorService
     public async Task<IEnumerable<AdministratorDto>> GetAllAsync()
     {
         var users = (await _uow.Users.GetAllAsync())
-            .Where(u => u.Role == UserRole.SuperAdmin || u.AdminRoleId != null)
+            .Where(u => (u.Role == UserRole.SuperAdmin || u.AdminRoleId != null) && !u.IsDeleted && u.IsActive)
             .ToList();
 
         var roles = (await _uow.AdminRoles.GetAllAsync()).ToDictionary(r => r.Id);

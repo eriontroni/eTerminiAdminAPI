@@ -1,0 +1,20 @@
+# Build context-i i AdminAPI-së është dosja PRIND (mban të dy repot), prandaj një
+# .dockerignore brenda këtij repo-je nuk do të lexohej. BuildKit-i lexon në vend të tij
+# skedarin "<dockerfile>.dockerignore", pra pikërisht këtë.
+.git
+**/.git
+**/.github
+**/.claude
+**/.vs
+**/bin
+**/obj
+**/logs
+**/node_modules
+**/dist
+*.log
+**/*.user
+
+# Frontend-et nuk hyjnë fare në build-in e AdminAPI-së.
+eTerminiUI
+eTerminiAdminUi
+etermini-deploy

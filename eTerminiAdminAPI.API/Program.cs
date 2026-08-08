@@ -5,6 +5,7 @@ using eTerminiAdminAPI.Infrastructure;
 using eTerminiAPI.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -17,16 +18,38 @@ Log.Logger = new LoggerConfiguration()
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog();
 
+// Prapa Cloudflare Tunnel / reverse proxy: respekto X-Forwarded-Proto & X-Forwarded-For.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
+// Origjinat lejohen nga konfigurimi (Cors:AllowedOrigins), me fallback në portat lokale të Vite.
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>();
+
+if (allowedOrigins is null || allowedOrigins.Length == 0)
+{
+    allowedOrigins =
+    [
+        "http://localhost:5175", "https://localhost:5175",
+        "http://localhost:5176", "https://localhost:5176"
+    ];
+}
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAdminUI", policy =>
-        policy.WithOrigins(
-                  "http://localhost:5175",  "https://localhost:5175",
-                  "http://localhost:5176",  "https://localhost:5176")
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials());
 });
+
+builder.Services.AddHealthChecks();
 
 var jwtKey = builder.Configuration["Jwt:Key"]!;
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -92,20 +115,27 @@ using (var scope = app.Services.CreateScope())
     await AdminSeeder.SeedSuperAdminAsync(db, builder.Configuration, logger);
 }
 
+app.UseForwardedHeaders();
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Configuration.GetValue("Swagger:Enabled", false))
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// Prapa tunelit TLS-i mbyllet te Cloudflare — redirect-i brenda kontejnerit do të krijonte lak.
+if (app.Configuration.GetValue("Hosting:UseHttpsRedirection", true))
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseCors("AllowAdminUI");
 app.UseAuthentication();
 app.UseAuthorization();
 
 // Çdo endpoint kërkon të paktën autentikim; lejet specifike vendosen me [HasPermission].
 app.MapControllers().RequireAuthorization();
+app.MapHealthChecks("/health").AllowAnonymous();
 
 app.Run();
