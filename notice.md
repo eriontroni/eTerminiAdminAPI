@@ -1,6 +1,6 @@
 # eTerminiAdminAPI — I ARKIVUAR
 
-Ky repository nuk mirëmbahet më. I gjithë funksionaliteti është zhvendosur brenda [eTerminiAPI](../eTerminiAPI) dhe shërbehet nga i njëjti proces në rrugët `/api/admin/*`.
+Ky repository nuk mirëmbahet më. I gjithë funksionaliteti është zhvendosur brenda [eTerminiAPI] dhe shërbehet nga i njëjti proces në rrugët `/api/admin/*`.
 
 ## Pse u hoq?
 
